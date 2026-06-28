@@ -1,0 +1,16 @@
+{
+    "name": "ImpactRush.Core",
+    "rootNamespace": "ImpactRush.Core",
+    "references": [
+        "ImpactRush.Utilities"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

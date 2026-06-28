@@ -1,0 +1,17 @@
+{
+    "name": "ImpactRush.Physics",
+    "rootNamespace": "ImpactRush.Physics",
+    "references": [
+        "ImpactRush.Core",
+        "ImpactRush.Utilities"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,51 @@
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# C# / Unity scripts
+[*.cs]
+indent_size = 4
+tab_width = 4
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_prefer_braces = true:suggestion
+csharp_prefer_simple_using_statement = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
+
+# Unity YAML assets
+[*.{unity,prefab,asset,mat,anim,controller,overrideController,mask}]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+# JSON (asmdef, package manifests)
+[*.json]
+indent_size = 4
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+
+# Shaders
+[*.{shader,hlsl,cginc}]
+indent_size = 4

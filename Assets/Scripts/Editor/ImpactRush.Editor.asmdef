@@ -1,0 +1,22 @@
+{
+    "name": "ImpactRush.Editor",
+    "rootNamespace": "ImpactRush.Editor",
+    "references": [
+        "ImpactRush.Core",
+        "ImpactRush.Gameplay",
+        "ImpactRush.Physics",
+        "ImpactRush.UI",
+        "ImpactRush.Utilities"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
