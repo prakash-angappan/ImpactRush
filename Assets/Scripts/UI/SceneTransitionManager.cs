@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using ImpactRush.Core;
 using ImpactRush.Core.Events;
@@ -41,32 +42,44 @@ namespace ImpactRush.UI
             }
 
             _isTransitioning = true;
+            var loadingPopupOpened = false;
             try
             {
                 if (showLoadingPopup && _popupManager != null)
                 {
                     _popupManager.OpenPopup(UIPopupIds.Loading);
+                    loadingPopupOpened = true;
                 }
 
                 await RunFade(_fadeOverlay.FadeOut());
                 await _sceneLoader.LoadSceneAsync(scene);
                 EventBus.Publish(new SceneTransitionCompletedEvent(scene));
                 await RunFade(_fadeOverlay.FadeIn());
-
-                if (showLoadingPopup && _popupManager != null)
-                {
-                    _popupManager.ClosePopup(UIPopupIds.Loading);
-                }
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                EventBus.Publish(new SceneTransitionFailedEvent(scene, exception.Message));
             }
             finally
             {
+                if (loadingPopupOpened && _popupManager != null)
+                {
+                    _popupManager.ClosePopup(UIPopupIds.Loading);
+                }
+
                 _isTransitioning = false;
             }
         }
 
         private void OnTransitionRequested(SceneTransitionRequestedEvent transitionEvent)
         {
-            _ = TransitionToAsync(transitionEvent.Scene, transitionEvent.ShowLoadingPopup);
+            _ = HandleTransitionRequestedAsync(transitionEvent);
+        }
+
+        private async Task HandleTransitionRequestedAsync(SceneTransitionRequestedEvent transitionEvent)
+        {
+            await TransitionToAsync(transitionEvent.Scene, transitionEvent.ShowLoadingPopup);
         }
 
         private static async Task RunFade(System.Collections.IEnumerator routine)

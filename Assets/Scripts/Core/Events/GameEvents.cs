@@ -25,6 +25,18 @@ namespace ImpactRush.Core.Events
         public GameScene Scene { get; }
     }
 
+    public readonly struct SceneTransitionFailedEvent : IGameEvent
+    {
+        public SceneTransitionFailedEvent(GameScene scene, string errorMessage)
+        {
+            Scene = scene;
+            ErrorMessage = errorMessage;
+        }
+
+        public GameScene Scene { get; }
+        public string ErrorMessage { get; }
+    }
+
     public readonly struct GamePausedEvent : IGameEvent
     {
     }

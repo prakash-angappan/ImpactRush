@@ -45,7 +45,7 @@ namespace ImpactRush.Gameplay
             var displacement = _shot.InitialDirection * (_shot.ProjectileSpeed * Time.deltaTime);
             var newPosition = _lastPosition + displacement;
 
-            if (_distanceFromStart >= CollisionGraceDistance && TryImpactAlongSegment(_lastPosition, newPosition))
+            if (TryImpactAlongSegment(_lastPosition, newPosition))
             {
                 return;
             }
@@ -76,6 +76,11 @@ namespace ImpactRush.Gameplay
             }
 
             if (hit.collider == _collider || hit.collider.isTrigger || hit.collider.gameObject.layer == Layers.Get(Layers.Aim))
+            {
+                return false;
+            }
+
+            if (_distanceFromStart + hit.distance < CollisionGraceDistance)
             {
                 return false;
             }

@@ -1,5 +1,4 @@
 using ImpactRush.Core.Events;
-using ImpactRush.Core.Managers;
 using UnityEngine;
 using GameScene = ImpactRush.Core.GameScene;
 
@@ -13,9 +12,25 @@ namespace ImpactRush.Core.Bootstrap
     {
         [SerializeField] private GameScene _initialScene = GameScene.MainMenu;
 
+        private void OnEnable()
+        {
+            EventBus.Subscribe<SceneTransitionFailedEvent>(OnSceneTransitionFailed);
+        }
+
+        private void OnDisable()
+        {
+            EventBus.Unsubscribe<SceneTransitionFailedEvent>(OnSceneTransitionFailed);
+        }
+
         private void Start()
         {
             EventBus.Publish(new SceneTransitionRequestedEvent(_initialScene));
+        }
+
+        private static void OnSceneTransitionFailed(SceneTransitionFailedEvent failedEvent)
+        {
+            Debug.LogError(
+                $"Bootstrap failed to load initial scene '{failedEvent.Scene}': {failedEvent.ErrorMessage}");
         }
     }
 }

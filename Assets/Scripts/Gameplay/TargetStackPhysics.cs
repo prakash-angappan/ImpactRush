@@ -3,7 +3,7 @@ using UnityEngine;
 namespace ImpactRush.Gameplay
 {
     /// <summary>
-    /// Applies stack box physics to all target cubes in the scene.
+    /// Applies stack box physics to all BoxCollider children under this TargetStack root.
     /// </summary>
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(-60)]
@@ -16,16 +16,11 @@ namespace ImpactRush.Gameplay
 
         private void Awake()
         {
-            var transforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            for (var i = 0; i < transforms.Length; i++)
+            var colliders = GetComponentsInChildren<BoxCollider>(true);
+            for (var i = 0; i < colliders.Length; i++)
             {
-                var boxObject = transforms[i].gameObject;
-                if (!boxObject.name.StartsWith("Cube_"))
-                {
-                    continue;
-                }
-
-                if (!boxObject.TryGetComponent<BoxCollider>(out _))
+                var boxObject = colliders[i].gameObject;
+                if (boxObject == gameObject)
                 {
                     continue;
                 }
