@@ -3,7 +3,9 @@
     "rootNamespace": "ImpactRush.UI",
     "references": [
         "ImpactRush.Core",
-        "ImpactRush.Utilities"
+        "ImpactRush.Audio",
+        "ImpactRush.Utilities",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

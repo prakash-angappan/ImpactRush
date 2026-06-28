@@ -128,8 +128,11 @@ GameObject:
   m_Component:
   - component: {fileID: 1000000002}
   - component: {fileID: 1000000003}
+  - component: {fileID: 1000000004}
+  - component: {fileID: 1000000005}
+  - component: {fileID: 1000000006}
   m_Layer: 0
-  m_Name: Bootstrap
+  m_Name: GameBootstrap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -159,10 +162,50 @@ MonoBehaviour:
   m_GameObject: {fileID: 1000000001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7c4a9b12d3f4567890abcdef1234567, type: 3}
+  m_Script: {fileID: 11500000, guid: f1a2b3c4d5e6478990abcdef01234508, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: ImpactRush.Core::ImpactRush.Core.Bootstrap.BootstrapInitializer
-  _targetScene: MainMenu
+  m_EditorClassIdentifier: ImpactRush.Core::ImpactRush.Core.Managers.GameManager
+  _gameSettings: {fileID: 11400000, guid: a9b8c7d6e5f4432187654321fedcba98, type: 2}
+  _enableVSync: 1
+  _uiRootPrefab: {fileID: 0}
+--- !u!114 &1000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1a2b3c4d5e6478990abcdef01234509, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Core::ImpactRush.Core.Managers.SceneLoader
+--- !u!114 &1000000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1a2b3c4d5e6478990abcdef01234510, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Core::ImpactRush.Core.Bootstrap.GameBootstrap
+  _initialScene: 1
+--- !u!114 &1000000006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1cc1111222233334444555566667777, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Core::ImpactRush.Core.Managers.GameSessionManager
+  _startingLevel: 1
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,7 +1,7 @@
 namespace ImpactRush.UI
 {
     /// <summary>
-    /// Marker contract for future UI screen lifecycle management.
+    /// Contract for UI screens managed by <see cref="UIManager"/>.
     /// </summary>
     public interface IUIScreen
     {

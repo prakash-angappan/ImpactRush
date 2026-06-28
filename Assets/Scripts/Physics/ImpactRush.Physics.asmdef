@@ -2,8 +2,8 @@
     "name": "ImpactRush.Physics",
     "rootNamespace": "ImpactRush.Physics",
     "references": [
-        "ImpactRush.Core",
-        "ImpactRush.Utilities"
+        "GUID:c4cc1111222233334444555566667777",
+        "GUID:c2cc1111222233334444555566667777"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

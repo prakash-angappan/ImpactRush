@@ -2,7 +2,7 @@
     "name": "ImpactRush.Core",
     "rootNamespace": "ImpactRush.Core",
     "references": [
-        "ImpactRush.Utilities"
+        "GUID:c2cc1111222233334444555566667777"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

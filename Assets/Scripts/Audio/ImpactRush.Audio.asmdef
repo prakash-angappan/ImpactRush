@@ -1,0 +1,17 @@
+{
+    "name": "ImpactRush.Audio",
+    "rootNamespace": "ImpactRush.Audio",
+    "references": [
+        "GUID:c4cc1111222233334444555566667777",
+        "GUID:c2cc1111222233334444555566667777"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

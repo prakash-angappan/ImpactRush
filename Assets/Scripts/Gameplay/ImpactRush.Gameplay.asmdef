@@ -3,6 +3,7 @@
     "rootNamespace": "ImpactRush.Gameplay",
     "references": [
         "ImpactRush.Core",
+        "ImpactRush.Audio",
         "ImpactRush.Physics",
         "ImpactRush.Utilities"
     ],
