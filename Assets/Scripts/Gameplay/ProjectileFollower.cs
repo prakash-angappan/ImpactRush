@@ -70,7 +70,36 @@ namespace ImpactRush.Gameplay
                 return false;
             }
 
-            if (!UnityEngine.Physics.SphereCast(from, _radius, displacement.normalized, out var hit, distance, UnityEngine.Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            var direction = displacement / distance;
+            var maxStep = Mathf.Max(_radius * 0.5f, 0.05f);
+            var traveled = 0f;
+
+            while (traveled < distance)
+            {
+                var stepDistance = Mathf.Min(maxStep, distance - traveled);
+                var segmentStart = from + direction * traveled;
+
+                if (TrySphereCastImpact(segmentStart, direction, stepDistance, traveled))
+                {
+                    return true;
+                }
+
+                traveled += stepDistance;
+            }
+
+            return false;
+        }
+
+        private bool TrySphereCastImpact(Vector3 segmentStart, Vector3 direction, float stepDistance, float segmentOffset)
+        {
+            if (!UnityEngine.Physics.SphereCast(
+                    segmentStart,
+                    _radius,
+                    direction,
+                    out var hit,
+                    stepDistance,
+                    UnityEngine.Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore))
             {
                 return false;
             }
@@ -80,7 +109,7 @@ namespace ImpactRush.Gameplay
                 return false;
             }
 
-            if (_distanceFromStart + hit.distance < CollisionGraceDistance)
+            if (_distanceFromStart + segmentOffset + hit.distance < CollisionGraceDistance)
             {
                 return false;
             }

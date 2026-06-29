@@ -37,9 +37,15 @@ namespace ImpactRush.Gameplay
         private static void ApplyImpact(Vector3 impactPoint, Vector3 travelVelocity, ImpactSettings settings, Collider primaryCollider)
         {
             var impulse = travelVelocity * settings.ImpactForce;
-            if (primaryCollider.attachedRigidbody != null)
+            if (primaryCollider.GetComponent<StackPiece>() != null)
             {
-                primaryCollider.attachedRigidbody.AddForceAtPosition(impulse, impactPoint, ForceMode.Impulse);
+                TargetStackPhysics.ActivateAllForGameplay();
+            }
+
+            var primaryRigidbody = primaryCollider.attachedRigidbody;
+            if (primaryRigidbody != null)
+            {
+                primaryRigidbody.AddForceAtPosition(impulse, impactPoint, ForceMode.Impulse);
             }
 
             if (settings.ExplosionRadius <= 0f || settings.ExplosionForce <= 0f)

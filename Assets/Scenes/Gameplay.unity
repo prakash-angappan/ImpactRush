@@ -1405,10 +1405,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa889900112233445566778899001122, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.TargetStackPhysics
+  _platform: {fileID: 0}
   _mass: 1
   _drag: 0.2
   _angularDrag: 0.2
   _contactMaterial: {fileID: 13400000, guid: aa667788990011223344556677889900, type: 2}
+  _wakeOnFirstShot: 1
 --- !u!114 &2000000318
 MonoBehaviour:
   m_ObjectHideFlags: 0
