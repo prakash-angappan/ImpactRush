@@ -10,16 +10,18 @@ namespace ImpactRush.Gameplay
     public sealed class LevelCompleteMonitor : MonoBehaviour
     {
         [SerializeField] private Transform _platform;
+        [SerializeField] private Transform _targetRoot;
         [SerializeField] private float _platformTopOffset = 0.55f;
         [SerializeField] private float _checkInterval = 0.25f;
 
         private float _nextCheckTime;
         private bool _hasReportedComplete;
         private int _initialTargetCount;
+        private LevelTarget[] _targets = System.Array.Empty<LevelTarget>();
 
-        private void Awake()
+        private void Start()
         {
-            _initialTargetCount = CountActiveTargets();
+            RefreshTargets();
         }
 
         private void Update()
@@ -35,11 +37,37 @@ namespace ImpactRush.Gameplay
             }
 
             _nextCheckTime = Time.time + _checkInterval;
+
+            if (!ServiceLocator.TryGet<GameSessionManager>(out var session))
+            {
+                return;
+            }
+
+            if (session.IsLevelComplete || session.IsLevelFailed)
+            {
+                return;
+            }
+
             if (AreAllTargetsCleared())
             {
                 _hasReportedComplete = true;
-                ServiceLocator.Get<GameSessionManager>().NotifyLevelComplete();
+                session.NotifyLevelComplete();
+                return;
             }
+
+            if (session.BallsRemaining <= 0 && session.HasOutOfBallsFailGraceElapsed())
+            {
+                session.NotifyLevelFailed();
+            }
+        }
+
+        public void RefreshTargets()
+        {
+            _targets = _targetRoot != null
+                ? _targetRoot.GetComponentsInChildren<LevelTarget>(true)
+                : FindObjectsByType<LevelTarget>(FindObjectsSortMode.None);
+            _initialTargetCount = CountActiveTargets();
+            _hasReportedComplete = false;
         }
 
         private bool AreAllTargetsCleared()
@@ -52,17 +80,17 @@ namespace ImpactRush.Gameplay
             var platformTopY = _platform.position.y + _platformTopOffset;
             var activeTargets = 0;
             var clearedTargets = 0;
-            var transforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
-            for (var i = 0; i < transforms.Length; i++)
+
+            for (var i = 0; i < _targets.Length; i++)
             {
-                var target = transforms[i];
-                if (!target.name.StartsWith("Cube_") || !target.gameObject.activeInHierarchy)
+                var target = _targets[i];
+                if (target == null || !target.gameObject.activeInHierarchy)
                 {
                     continue;
                 }
 
                 activeTargets++;
-                if (target.position.y < platformTopY)
+                if (target.transform.position.y < platformTopY)
                 {
                     clearedTargets++;
                 }
@@ -79,10 +107,9 @@ namespace ImpactRush.Gameplay
         private int CountActiveTargets()
         {
             var count = 0;
-            var transforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
-            for (var i = 0; i < transforms.Length; i++)
+            for (var i = 0; i < _targets.Length; i++)
             {
-                if (transforms[i].name.StartsWith("Cube_") && transforms[i].gameObject.activeInHierarchy)
+                if (_targets[i] != null && _targets[i].gameObject.activeInHierarchy)
                 {
                     count++;
                 }
@@ -90,10 +117,12 @@ namespace ImpactRush.Gameplay
 
             return count;
         }
+
 #if UNITY_EDITOR
         private void Reset()
         {
             _platform = transform.Find("Platform");
+            _targetRoot = transform.Find("TargetStack");
         }
 #endif
     }

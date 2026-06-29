@@ -1,9 +1,11 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ImpactRush.Gameplay
 {
     /// <summary>
-    /// Applies stack box physics to all BoxCollider children under this TargetStack root.
+    /// Applies stack piece physics after the procedural layout has been built.
     /// </summary>
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(-60)]
@@ -14,24 +16,40 @@ namespace ImpactRush.Gameplay
         [SerializeField] private float _angularDrag = 0.05f;
         [SerializeField] private PhysicsMaterial _contactMaterial;
 
-        private void Awake()
+        private void Start()
         {
-            var colliders = GetComponentsInChildren<BoxCollider>(true);
-            for (var i = 0; i < colliders.Length; i++)
+            ConfigureStackPieces();
+            StartCoroutine(ActivateStackAfterLayout());
+        }
+
+        private void ConfigureStackPieces()
+        {
+            var targets = GetComponentsInChildren<LevelTarget>(true);
+            for (var i = 0; i < targets.Length; i++)
             {
-                var boxObject = colliders[i].gameObject;
-                if (boxObject == gameObject)
+                var targetObject = targets[i].gameObject;
+                var stackPiece = targetObject.GetComponent<StackPiece>();
+                if (stackPiece == null)
                 {
-                    continue;
+                    stackPiece = targetObject.AddComponent<StackPiece>();
                 }
 
-                var stackBox = boxObject.GetComponent<StackBox>();
-                if (stackBox == null)
-                {
-                    stackBox = boxObject.AddComponent<StackBox>();
-                }
+                stackPiece.Configure(_mass, _drag, _angularDrag, _contactMaterial, startKinematic: true);
+            }
+        }
 
-                stackBox.Configure(_mass, _drag, _angularDrag, _contactMaterial);
+        private IEnumerator ActivateStackAfterLayout()
+        {
+            yield return new WaitForFixedUpdate();
+            UnityEngine.Physics.SyncTransforms();
+
+            var pieces = new List<StackPiece>(GetComponentsInChildren<StackPiece>(true));
+            pieces.Sort((left, right) => left.transform.position.y.CompareTo(right.transform.position.y));
+
+            for (var i = 0; i < pieces.Count; i++)
+            {
+                pieces[i].SetDynamic();
+                yield return new WaitForFixedUpdate();
             }
         }
     }

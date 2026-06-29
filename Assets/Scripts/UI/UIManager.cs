@@ -18,8 +18,6 @@ namespace ImpactRush.UI
         [SerializeField] private UIScreenView _mainMenuScreen;
         [SerializeField] private UIScreenView _gameHudScreen;
         [SerializeField] private PopupManager _popupManager;
-        [SerializeField] private string _defaultLevelLabel = "LEVEL 1";
-
         private readonly Dictionary<string, UIScreenView> _screens = new();
         private GameSessionManager _sessionManager;
         private GameHudScreenView _gameHudView;
@@ -37,6 +35,8 @@ namespace ImpactRush.UI
             EventBus.Subscribe<GamePausedEvent>(OnGamePaused);
             EventBus.Subscribe<GameResumedEvent>(OnGameResumed);
             EventBus.Subscribe<LevelCompleteDetectedEvent>(OnLevelComplete);
+            EventBus.Subscribe<LevelFailedDetectedEvent>(OnLevelFailed);
+            EventBus.Subscribe<BallsRemainingChangedEvent>(OnBallsRemainingChanged);
         }
 
         private void OnDestroy()
@@ -45,6 +45,8 @@ namespace ImpactRush.UI
             EventBus.Unsubscribe<GamePausedEvent>(OnGamePaused);
             EventBus.Unsubscribe<GameResumedEvent>(OnGameResumed);
             EventBus.Unsubscribe<LevelCompleteDetectedEvent>(OnLevelComplete);
+            EventBus.Unsubscribe<LevelFailedDetectedEvent>(OnLevelFailed);
+            EventBus.Unsubscribe<BallsRemainingChangedEvent>(OnBallsRemainingChanged);
         }
 
         public void ShowScreen(string screenId)
@@ -84,6 +86,11 @@ namespace ImpactRush.UI
             _popupManager.OpenPopup(UIPopupIds.LevelComplete);
         }
 
+        public void ShowLevelFailed()
+        {
+            _popupManager.OpenPopup(UIPopupIds.LevelFailed);
+        }
+
         public void ShowSettings()
         {
             _popupManager.OpenPopup(UIPopupIds.Settings);
@@ -105,7 +112,8 @@ namespace ImpactRush.UI
                     break;
                 case GameScene.Gameplay:
                     ShowScreen(UIScreenIds.GameHud);
-                    _gameHudView?.SetLevelLabel(_defaultLevelLabel);
+                    RefreshLevelLabel();
+                    RefreshBallsLabel();
                     break;
             }
         }
@@ -122,6 +130,28 @@ namespace ImpactRush.UI
         private void OnLevelComplete(LevelCompleteDetectedEvent _)
         {
             ShowLevelComplete();
+        }
+
+        private void OnLevelFailed(LevelFailedDetectedEvent _)
+        {
+            ShowLevelFailed();
+        }
+
+        private void OnBallsRemainingChanged(BallsRemainingChangedEvent ballsEvent)
+        {
+            _gameHudView?.SetBallsRemainingLabel(ballsEvent.BallsRemaining);
+        }
+
+        private void RefreshLevelLabel()
+        {
+            var level = _sessionManager != null ? _sessionManager.CurrentLevel : 1;
+            _gameHudView?.SetLevelLabel($"LEVEL {level}");
+        }
+
+        private void RefreshBallsLabel()
+        {
+            var balls = _sessionManager != null ? _sessionManager.BallsRemaining : 0;
+            _gameHudView?.SetBallsRemainingLabel(balls);
         }
 
         private void RegisterScreen(UIScreenView screen)

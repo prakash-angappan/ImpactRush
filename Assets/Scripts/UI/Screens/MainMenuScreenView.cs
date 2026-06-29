@@ -21,7 +21,7 @@ namespace ImpactRush.UI
         {
             if (_titleLabel != null)
             {
-                _titleLabel.text = "Impact Rush";
+                _titleLabel.text = "IMPACT RUSH";
             }
         }
 

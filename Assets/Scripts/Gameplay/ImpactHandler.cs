@@ -31,6 +31,7 @@ namespace ImpactRush.Gameplay
 
             ApplyImpact(hit.point, travelVelocity, settings, hit.collider);
             EventBus.Publish(new PlaySfxEvent(AudioIds.Impact));
+            EventBus.Publish(new ProjectileHitEvent());
         }
 
         private static void ApplyImpact(Vector3 impactPoint, Vector3 travelVelocity, ImpactSettings settings, Collider primaryCollider)

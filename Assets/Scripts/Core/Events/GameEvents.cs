@@ -49,6 +49,25 @@ namespace ImpactRush.Core.Events
     {
     }
 
+    public readonly struct LevelFailedDetectedEvent : IGameEvent
+    {
+    }
+
+    public readonly struct ProjectileHitEvent : IGameEvent
+    {
+    }
+
+    public readonly struct BallsRemainingChangedEvent : IGameEvent
+    {
+        public BallsRemainingChangedEvent(int ballsRemaining)
+        {
+            BallsRemaining = ballsRemaining;
+        }
+
+        public int BallsRemaining { get; }
+    }
+
+
     public readonly struct PlaySfxEvent : IGameEvent
     {
         public PlaySfxEvent(string clipId)

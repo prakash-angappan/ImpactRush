@@ -12,6 +12,7 @@ namespace ImpactRush.UI
         public const string Pause = "Popup_Pause";
         public const string ExitConfirmation = "Popup_ExitConfirmation";
         public const string LevelComplete = "Popup_LevelComplete";
+        public const string LevelFailed = "Popup_LevelFailed";
         public const string Loading = "Popup_Loading";
     }
 }

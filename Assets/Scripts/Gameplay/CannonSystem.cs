@@ -66,7 +66,12 @@ namespace ImpactRush.Gameplay
 
         private void HandleTargetSelected(Vector3 target)
         {
-            if (Time.time < _nextShotTime || !_projectileLauncher.HasCapacity())
+            if (IsGameplayInputBlocked() || Time.time < _nextShotTime || !_projectileLauncher.HasCapacity())
+            {
+                return;
+            }
+
+            if (!TryConsumeBall())
             {
                 return;
             }
@@ -98,6 +103,26 @@ namespace ImpactRush.Gameplay
         {
             _lastShotData = shot;
             _hasLastShotData = true;
+        }
+
+        private static bool IsGameplayInputBlocked()
+        {
+            if (!ServiceLocator.TryGet<GameSessionManager>(out var session))
+            {
+                return false;
+            }
+
+            return session.IsPaused || session.IsLevelComplete || session.IsLevelFailed;
+        }
+
+        private static bool TryConsumeBall()
+        {
+            if (!ServiceLocator.TryGet<GameSessionManager>(out var session))
+            {
+                return true;
+            }
+
+            return session.TryConsumeBall();
         }
 
 #if UNITY_EDITOR

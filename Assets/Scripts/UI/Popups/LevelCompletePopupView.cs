@@ -22,11 +22,6 @@ namespace ImpactRush.UI
             {
                 _titleLabel.text = "LEVEL COMPLETE";
             }
-
-            if (_nextLevelButton != null)
-            {
-                _nextLevelButton.interactable = false;
-            }
         }
 
         private void Start()
@@ -36,6 +31,11 @@ namespace ImpactRush.UI
             if (_restartButton != null)
             {
                 _restartButton.onClick.AddListener(OnRestartClicked);
+            }
+
+            if (_nextLevelButton != null)
+            {
+                _nextLevelButton.onClick.AddListener(OnNextLevelClicked);
             }
 
             if (_mainMenuButton != null)
@@ -48,6 +48,17 @@ namespace ImpactRush.UI
         {
             EventBus.Publish(new PlaySfxEvent(AudioIds.ButtonClick));
             _sessionManager.RestartLevel();
+        }
+
+        private void OnNextLevelClicked()
+        {
+            EventBus.Publish(new PlaySfxEvent(AudioIds.ButtonClick));
+            LoadNextLevelPlaceholder();
+        }
+
+        private void LoadNextLevelPlaceholder()
+        {
+            _sessionManager.AdvanceToNextLevel();
         }
 
         private void OnMainMenuClicked()

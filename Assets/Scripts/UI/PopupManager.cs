@@ -18,6 +18,7 @@ namespace ImpactRush.UI
         [SerializeField] private UIPopupView _pausePopup;
         [SerializeField] private UIPopupView _exitConfirmationPopup;
         [SerializeField] private UIPopupView _levelCompletePopup;
+        [SerializeField] private UIPopupView _levelFailedPopup;
         [SerializeField] private UIPopupView _loadingPopup;
 
         private readonly Dictionary<string, UIPopupView> _popups = new();
@@ -29,6 +30,7 @@ namespace ImpactRush.UI
             RegisterPopup(_pausePopup);
             RegisterPopup(_exitConfirmationPopup);
             RegisterPopup(_levelCompletePopup);
+            RegisterPopup(_levelFailedPopup);
             RegisterPopup(_loadingPopup);
         }
 

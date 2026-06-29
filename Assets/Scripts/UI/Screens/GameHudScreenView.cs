@@ -11,15 +11,15 @@ namespace ImpactRush.UI
     {
         [SerializeField] private Button _pauseButton;
         [SerializeField] private TextMeshProUGUI _levelLabel;
-        [SerializeField] private TextMeshProUGUI _coinsLabel;
+        [SerializeField] private TextMeshProUGUI _ballsLabel;
 
         private UIManager _uiManager;
 
         private void Awake()
         {
-            if (_coinsLabel != null)
+            if (_ballsLabel != null)
             {
-                _coinsLabel.text = "0";
+                _ballsLabel.text = "0";
             }
         }
 
@@ -46,6 +46,14 @@ namespace ImpactRush.UI
             if (_levelLabel != null)
             {
                 _levelLabel.text = label;
+            }
+        }
+
+        public void SetBallsRemainingLabel(int ballsRemaining)
+        {
+            if (_ballsLabel != null)
+            {
+                _ballsLabel.text = ballsRemaining.ToString();
             }
         }
 

@@ -1,4 +1,7 @@
+using System;
+using ImpactRush.Core.Bootstrap;
 using ImpactRush.Core.Data;
+using ImpactRush.Core.Events;
 using ImpactRush.Core.Interfaces;
 using ImpactRush.Utilities;
 using UnityEngine;
@@ -26,18 +29,49 @@ namespace ImpactRush.Core.Managers
             ApplyApplicationSettings();
             RegisterServices();
             InitializeServices();
+            RequestInitialSceneTransition();
         }
 
         private void EnsureUIRoot()
         {
-            if (_uiRootPrefab == null)
+            _uiRootInstance = GameObject.Find("UIRoot");
+            if (_uiRootInstance != null)
             {
-                Debug.LogWarning("UIRoot prefab is not assigned on GameManager.");
                 return;
             }
 
-            _uiRootInstance = Instantiate(_uiRootPrefab);
-            _uiRootInstance.name = "UIRoot";
+            if (_uiRootPrefab == null)
+            {
+                _uiRootPrefab = Resources.Load<GameObject>("UI/UIRoot");
+            }
+
+            if (_uiRootPrefab != null)
+            {
+                _uiRootInstance = Instantiate(_uiRootPrefab);
+                _uiRootInstance.name = "UIRoot";
+                return;
+            }
+
+            _uiRootInstance = TryCreateRuntimeUIRoot();
+            if (_uiRootInstance == null)
+            {
+                Debug.LogError(
+                    "UIRoot prefab is not assigned on GameManager and could not be loaded from Resources/UI/UIRoot. " +
+                    "Run Impact Rush > Build UI Framework in the editor.");
+            }
+        }
+
+        private static GameObject TryCreateRuntimeUIRoot()
+        {
+            const string builderTypeName = "ImpactRush.UI.UIRootRuntimeBuilder, ImpactRush.UI";
+            var builderType = Type.GetType(builderTypeName);
+            if (builderType == null)
+            {
+                return null;
+            }
+
+            var createMethod = builderType.GetMethod("Create", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            return createMethod?.Invoke(null, null) as GameObject;
         }
 
         private void ApplyApplicationSettings()
@@ -85,6 +119,22 @@ namespace ImpactRush.Core.Managers
             {
                 initializable.Initialize();
             }
+        }
+
+        private void RequestInitialSceneTransition()
+        {
+            if (_uiRootInstance == null)
+            {
+                return;
+            }
+
+            var bootstrap = GetComponent<GameBootstrap>();
+            if (bootstrap == null)
+            {
+                return;
+            }
+
+            EventBus.Publish(new SceneTransitionRequestedEvent(bootstrap.InitialScene));
         }
     }
 }
