@@ -12,8 +12,8 @@ namespace ImpactRush.Gameplay
     public sealed class TargetStackPhysics : MonoBehaviour
     {
         [SerializeField] private float _mass = 1f;
-        [SerializeField] private float _drag = 0.15f;
-        [SerializeField] private float _angularDrag = 0.05f;
+        [SerializeField] private float _drag = 0.2f;
+        [SerializeField] private float _angularDrag = 0.2f;
         [SerializeField] private PhysicsMaterial _contactMaterial;
 
         private void Start()
@@ -49,7 +49,6 @@ namespace ImpactRush.Gameplay
             for (var i = 0; i < pieces.Count; i++)
             {
                 pieces[i].SetDynamic();
-                yield return new WaitForFixedUpdate();
             }
         }
     }

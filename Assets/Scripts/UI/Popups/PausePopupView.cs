@@ -9,6 +9,7 @@ namespace ImpactRush.UI
     public sealed class PausePopupView : UIPopupView
     {
         [SerializeField] private Button _resumeButton;
+        [SerializeField] private Button _restartButton;
         [SerializeField] private Button _mainMenuButton;
 
         private UIManager _uiManager;
@@ -24,6 +25,11 @@ namespace ImpactRush.UI
                 _resumeButton.onClick.AddListener(OnResumeClicked);
             }
 
+            if (_restartButton != null)
+            {
+                _restartButton.onClick.AddListener(OnRestartClicked);
+            }
+
             if (_mainMenuButton != null)
             {
                 _mainMenuButton.onClick.AddListener(OnMainMenuClicked);
@@ -34,6 +40,12 @@ namespace ImpactRush.UI
         {
             EventBus.Publish(new PlaySfxEvent(AudioIds.ButtonClick));
             _uiManager.HidePauseMenu();
+        }
+
+        private void OnRestartClicked()
+        {
+            EventBus.Publish(new PlaySfxEvent(AudioIds.ButtonClick));
+            _sessionManager.RestartLevel();
         }
 
         private void OnMainMenuClicked()
