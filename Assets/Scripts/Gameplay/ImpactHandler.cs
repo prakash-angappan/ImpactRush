@@ -1,7 +1,4 @@
-using ImpactRush.Audio;
-using ImpactRush.Core.Events;
-using ImpactRush.Core.Managers;
-using ImpactRush.Utilities;
+using ImpactRush.Gameplay.Impacts;
 using UnityEngine;
 
 namespace ImpactRush.Gameplay
@@ -10,85 +7,100 @@ namespace ImpactRush.Gameplay
     /// Impact tuning applied when a projectile hits valid scene geometry.
     /// </summary>
     [System.Serializable]
-    public struct ImpactSettings
+    public struct ProjectileImpactSettings
     {
-        public float ImpactForce;
-        public float ExplosionRadius;
-        public float ExplosionForce;
+        public float ImpactRadius;
+        public float MaximumForce;
+        public float MinimumForce;
+        public float ExplosionUpwardModifier;
+
+        public ImpactSettings ToImpactSettings()
+        {
+            return new ImpactSettings
+            {
+                DirectImpactForce = MaximumForce,
+                NeighbourRadius = ImpactRadius,
+                MaximumNeighbours = 4,
+                NeighbourForceMultiplier = 0.35f,
+                MaximumTorque = MaximumForce * 0.05f,
+                ProjectileEnergyLoss = 0.35f,
+                UpwardModifier = ExplosionUpwardModifier,
+                MinimumForce = MinimumForce,
+            };
+        }
     }
 
     /// <summary>
-    /// Applies impulses to impacted rigidbodies and optional radial falloff.
+    /// Compatibility entry points that delegate to <see cref="ImpactResolver"/>.
     /// </summary>
     public static class ImpactHandler
     {
-        public static void ProcessImpact(RaycastHit hit, Vector3 travelVelocity, ImpactSettings settings)
+        public static void ProcessImpact(RaycastHit hit, Vector3 travelVelocity, ProjectileImpactSettings settings)
         {
-            if (hit.collider == null || !IsValidImpactCollider(hit.collider))
+            if (hit.collider == null)
             {
                 return;
             }
 
-            ApplyImpact(hit.point, travelVelocity, settings, hit.collider);
-            EventBus.Publish(new PlaySfxEvent(AudioIds.Impact));
-            EventBus.Publish(new ProjectileHitEvent());
+            var direction = travelVelocity.sqrMagnitude > 0.0001f
+                ? travelVelocity.normalized
+                : (hit.normal.sqrMagnitude > 0.0001f ? -hit.normal.normalized : Vector3.forward);
+
+            ProcessAreaImpact(hit.point, direction, travelVelocity.magnitude, settings, hit.normal);
         }
 
-        private static void ApplyImpact(Vector3 impactPoint, Vector3 travelVelocity, ImpactSettings settings, Collider primaryCollider)
+        public static void ProcessAreaImpact(
+            Vector3 position,
+            Vector3 travelDirection,
+            float travelSpeed,
+            ImpactSettings settings,
+            Vector3 normal)
         {
-            var impulse = travelVelocity * settings.ImpactForce;
-            if (primaryCollider.GetComponent<StackPiece>() != null)
-            {
-                TargetStackPhysics.ActivateAllForGameplay();
-            }
+            Resolve(position, travelDirection, travelSpeed, settings, normal, null);
+        }
 
-            var primaryRigidbody = primaryCollider.attachedRigidbody;
-            if (primaryRigidbody != null)
-            {
-                primaryRigidbody.AddForceAtPosition(impulse, impactPoint, ForceMode.Impulse);
-            }
+        public static void ProcessAreaImpact(
+            Vector3 position,
+            Vector3 travelDirection,
+            float travelSpeed,
+            ProjectileImpactSettings settings,
+            Vector3 normal)
+        {
+            ProcessAreaImpact(position, travelDirection, travelSpeed, settings.ToImpactSettings(), normal);
+        }
 
-            if (settings.ExplosionRadius <= 0f || settings.ExplosionForce <= 0f)
+        private static void Resolve(
+            Vector3 position,
+            Vector3 travelDirection,
+            float travelSpeed,
+            ImpactSettings settings,
+            Vector3 normal,
+            Collider hitCollider)
+        {
+            if (settings.NeighbourRadius <= 0f && settings.DirectImpactForce <= 0f)
             {
                 return;
             }
 
-            var overlaps = UnityEngine.Physics.OverlapSphere(impactPoint, settings.ExplosionRadius, UnityEngine.Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-            for (var i = 0; i < overlaps.Length; i++)
+            var resolvedNormal = normal.sqrMagnitude > 0.0001f ? normal : Vector3.up;
+            var direction = travelDirection.sqrMagnitude > 0.0001f
+                ? travelDirection.normalized
+                : resolvedNormal;
+
+            var contact = new ImpactContact(
+                position,
+                resolvedNormal,
+                direction,
+                travelSpeed,
+                hitCollider);
+
+            if (ImpactResolver.Instance != null)
             {
-                var collider = overlaps[i];
-                if (!IsValidImpactCollider(collider))
-                {
-                    continue;
-                }
-
-                var rigidbody = collider.attachedRigidbody;
-                if (rigidbody == null)
-                {
-                    continue;
-                }
-
-                var offset = collider.bounds.center - impactPoint;
-                var distance = offset.magnitude;
-                if (distance <= 0.0001f)
-                {
-                    rigidbody.AddForce(impulse, ForceMode.Impulse);
-                    continue;
-                }
-
-                var falloff = 1f - Mathf.Clamp01(distance / settings.ExplosionRadius);
-                rigidbody.AddForceAtPosition(offset.normalized * (settings.ExplosionForce * falloff), impactPoint, ForceMode.Impulse);
-            }
-        }
-
-        private static bool IsValidImpactCollider(Collider collider)
-        {
-            if (collider == null || !collider.enabled || collider.isTrigger)
-            {
-                return false;
+                ImpactResolver.Instance.Resolve(in contact, in settings);
+                return;
             }
 
-            return collider.gameObject.layer != Layers.Get(Layers.Aim);
+            Debug.LogWarning("ImpactResolver is missing. Impact was skipped.");
         }
     }
 }

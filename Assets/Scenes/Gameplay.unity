@@ -718,6 +718,10 @@ GameObject:
   - component: {fileID: 2000000301}
   - component: {fileID: 2000000302}
   - component: {fileID: 2000000303}
+  - component: {fileID: 2000000304}
+  - component: {fileID: 2000000305}
+  - component: {fileID: 2000000306}
+  - component: {fileID: 2000000307}
   m_Layer: 0
   m_Name: Cannon
   m_TagString: Untagged
@@ -996,10 +1000,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.5, z: 0.65}
   m_LocalScale: {x: 0.45, y: 0.55, z: 0.45}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2000000026}
-  m_Father: {fileID: 2000000313}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Children: []
+  m_Father: {fileID: 2000000319}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!33 &2000000022
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1102,13 +1105,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2000000025}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -0.04}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.54, z: 1.65}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2000000028}
-  m_Father: {fileID: 2000000021}
+  m_Father: {fileID: 2000000319}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2000000027
 GameObject:
@@ -1268,11 +1271,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.CannonSystem
   _targetSelector: {fileID: 2000000302}
-  _cannonAnimator: {fileID: 2000000303}
-  _projectileLauncher: {fileID: 2000000301}
-  _shotCooldown: 0.08
-  _drawInitialDirectionDebug: 0
-  _debugLineLength: 3
+  _aimController: {fileID: 2000000304}
+  _stateController: {fileID: 2000000305}
 --- !u!114 &2000000301
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1287,16 +1287,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.ProjectileLauncher
   _projectilePrefab: {fileID: 826374001, guid: ee001122334455667788990011223344, type: 3}
   _spawnPoint: {fileID: 2000000026}
-  _projectileTravelTime: 0.65
-  _maxGameplayDistance: 20
-  _minimumArcHeight: 0
-  _maximumArcHeight: 5
-  _projectileLifetime: 8
-  _projectileRadius: 0.25
-  _impactForce: 1.5
-  _explosionRadius: 0
-  _explosionForce: 0
-  _maxActiveProjectiles: 3
+  _preferPool: 1
+  _ballOverride: {fileID: 0}
 --- !u!114 &2000000302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1319,7 +1311,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2000000008}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bb001122334455667788990011223347, type: 3}
   m_Name: 
@@ -1327,6 +1319,81 @@ MonoBehaviour:
   _basePivot: {fileID: 2000000311}
   _barrelPivot: {fileID: 2000000313}
   _spawnPoint: {fileID: 2000000026}
+  _recoilTransform: {fileID: 2000000021}
+  _minYawDegrees: -90
+  _maxYawDegrees: 90
+  _minPitchDegrees: -45
+  _maxPitchDegrees: 75
+  _drawAimDebug: 0
+--- !u!114 &2000000304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1e2d3c4b5a697887766554433221100, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.CannonAimController
+  _yawPivot: {fileID: 2000000311}
+  _pitchPivot: {fileID: 2000000313}
+  _aimReference: {fileID: 2000000026}
+  _yawLeftLimit: -90
+  _yawRightLimit: 90
+  _pitchDownLimit: -10
+  _pitchUpLimit: 70
+  _rotationSpeedDegrees: 120
+  _useRotateTowards: 1
+  _drawAimDebug: 1
+--- !u!114 &2000000305
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.CannonStateController
+  _aimController: {fileID: 2000000304}
+  _recoilAnimator: {fileID: 2000000306}
+  _projectileSpawner: {fileID: 2000000307}
+  _fireConfig: {fileID: 11400000, guid: d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0, type: 2}
+  _drawStateDebug: 1
+--- !u!114 &2000000306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.CannonRecoilAnimator
+  _recoilPivot: {fileID: 2000000319}
+  _boreReference: {fileID: 2000000026}
+  _fireConfig: {fileID: 11400000, guid: d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0, type: 2}
+--- !u!114 &2000000307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.CannonProjectileSpawner
+  _projectileLauncher: {fileID: 2000000301}
+  _spawnPoint: {fileID: 2000000026}
+  _cameraShake: {fileID: 0}
 --- !u!1 &2000000310
 GameObject:
   m_ObjectHideFlags: 0
@@ -1390,8 +1457,41 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2000000021}
+  - {fileID: 2000000319}
   m_Father: {fileID: 2000000311}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2000000320
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2000000319}
+  m_Layer: 0
+  m_Name: RecoilPivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2000000319
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000320}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2000000021}
+  - {fileID: 2000000026}
+  m_Father: {fileID: 2000000313}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2000000317
 MonoBehaviour:
@@ -1516,6 +1616,8 @@ MonoBehaviour:
   _width: 5.5
   _height: 4.5
   _center: {x: 0, y: 0, z: 0}
+  _drawAreaDebug: 1
+  _invalidAreaDepth: 0.75
 --- !u!1 &2000000406
 GameObject:
   m_ObjectHideFlags: 0
@@ -1740,9 +1842,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe00112233445566778899001122334a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.GameplayStage
+  _gameplayConfig: {fileID: 11400000, guid: c910e38fe2e056844911602bc87d483f, type: 2}
   _gameplayRectangle: {fileID: 2000000405}
   _aimPlane: {fileID: 2000000523}
   _platform: {fileID: 2000000511}
+  _ground: {fileID: 0}
+  _projectileLifetime: 12
+  _fireSize: 0.2
+  _fireLifetime: 0.45
+  _smokeSize: 0.28
+  _smokeLifetime: 0.7
 --- !u!114 &2000000531
 MonoBehaviour:
   m_ObjectHideFlags: 0

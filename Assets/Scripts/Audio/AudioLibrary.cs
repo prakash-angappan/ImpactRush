@@ -33,6 +33,7 @@ namespace ImpactRush.Audio
                 AudioIds.ButtonClick => _buttonClick,
                 AudioIds.ProjectileFire => _projectileFire,
                 AudioIds.Impact => _impact,
+                AudioIds.FragmentImpact => _impact,
                 AudioIds.Victory => _victory,
                 AudioIds.PopupOpen => _popupOpen,
                 AudioIds.PopupClose => _popupClose,

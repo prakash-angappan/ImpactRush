@@ -9,6 +9,7 @@ namespace ImpactRush.Audio
         public const string ButtonClick = "ButtonClick";
         public const string ProjectileFire = "ProjectileFire";
         public const string Impact = "Impact";
+        public const string FragmentImpact = "FragmentImpact";
         public const string Victory = "Victory";
         public const string PopupOpen = "PopupOpen";
         public const string PopupClose = "PopupClose";

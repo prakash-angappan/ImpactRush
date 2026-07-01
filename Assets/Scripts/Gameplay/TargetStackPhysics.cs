@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using ImpactRush.Gameplay.Data;
 using UnityEngine;
 
 namespace ImpactRush.Gameplay
@@ -79,6 +80,12 @@ namespace ImpactRush.Gameplay
 
         private void ConfigureStackPieces()
         {
+            var config = GameplayConfigProvider.Active;
+            var cleanupDelay = config != null ? config.CubeCleanupDelay : 3.5f;
+            var autoDestroyHeight = config != null
+                ? config.CubeAutoDestroyHeight
+                : -2.5f;
+
             var targets = GetComponentsInChildren<LevelTarget>(true);
             for (var i = 0; i < targets.Length; i++)
             {
@@ -89,7 +96,21 @@ namespace ImpactRush.Gameplay
                     stackPiece = targetObject.AddComponent<StackPiece>();
                 }
 
-                stackPiece.Configure(_mass, _drag, _angularDrag, _contactMaterial, startKinematic: true);
+                stackPiece.Configure(_mass, _drag, _angularDrag, _contactMaterial);
+                stackPiece.SetSimulationRoot(transform);
+
+                if (targetObject.GetComponent<PlatformOccupant>() == null)
+                {
+                    targetObject.AddComponent<PlatformOccupant>();
+                }
+
+                var cleanup = targetObject.GetComponent<FallenStackPieceCleanup>();
+                if (cleanup == null)
+                {
+                    cleanup = targetObject.AddComponent<FallenStackPieceCleanup>();
+                }
+
+                cleanup.Configure(cleanupDelay, autoDestroyHeight);
             }
         }
 

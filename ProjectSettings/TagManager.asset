@@ -12,7 +12,13 @@ TagManager:
   - Water
   - UI
   - Aim
-  -
+  - AimPlane
+  - Breakable
+  - Ground
+  - Platform
+  - Projectile
+  - GameplayBounds
+  - Environment
   - 
   - 
   - 

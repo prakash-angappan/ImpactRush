@@ -51,7 +51,7 @@ namespace ImpactRush.Gameplay
         private void ConfigureCollider()
         {
             _collider.isTrigger = true;
-            gameObject.layer = Layers.Get(Layers.Aim);
+            Layers.TrySetLayer(gameObject, Layers.AimPlane);
         }
     }
 }

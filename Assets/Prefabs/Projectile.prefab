@@ -12,6 +12,10 @@ GameObject:
   - component: {fileID: 826374003}
   - component: {fileID: 826374004}
   - component: {fileID: 826374005}
+  - component: {fileID: 826374006}
+  - component: {fileID: -3835602814914102462}
+  - component: {fileID: -570587047288862287}
+  - component: {fileID: 7097950116799923473}
   m_Layer: 0
   m_Name: Projectile
   m_TagString: Untagged
@@ -98,7 +102,7 @@ SphereCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 826374001}
-  m_Material: {fileID: 13400000, guid: aa667788990011223344556677889900, type: 2}
+  m_Material: {fileID: 13400000, guid: b7c4d8e1f2a3456789012345678abcd1, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -112,3 +116,70 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &826374006
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826374001}
+  serializedVersion: 5
+  m_Mass: 5
+  m_LinearDamping: 0.05
+  m_AngularDamping: 0.2
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 1
+  m_Constraints: 0
+  m_CollisionDetection: 2
+--- !u!114 &-3835602814914102462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826374001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b74173a8334978f48aa3292d92cf5bba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.ProjectileController
+--- !u!114 &-570587047288862287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826374001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff072acda9477904793c2d07825e21ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Gameplay::ImpactRush.Gameplay.Impacts.ProjectilePoolReset
+  _controller: {fileID: 0}
+  _collider: {fileID: 0}
+  _trailRenderer: {fileID: 0}
+  _particleSystems: []
+--- !u!114 &7097950116799923473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826374001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc703344556677889900112233445566, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ImpactRush.Core.Pooling::ImpactRush.Core.Pooling.PooledObject

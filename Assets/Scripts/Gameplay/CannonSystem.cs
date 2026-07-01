@@ -1,5 +1,3 @@
-using ImpactRush.Audio;
-using ImpactRush.Core.Events;
 using ImpactRush.Core.Managers;
 using ImpactRush.Utilities;
 using UnityEngine;
@@ -7,24 +5,14 @@ using UnityEngine;
 namespace ImpactRush.Gameplay
 {
     /// <summary>
-    /// Coordinates tap targeting, ShotData generation, cannon aim, and projectile launch.
+    /// Cannon input bridge: validated target selection, aim rotation, and fire state machine.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class CannonSystem : MonoBehaviour
     {
-        [Header("References")]
         [SerializeField] private TargetSelector _targetSelector;
-        [SerializeField] private CannonAnimator _cannonAnimator;
-        [SerializeField] private ProjectileLauncher _projectileLauncher;
-        [Header("Timing")]
-        [SerializeField] private float _shotCooldown = 0.08f;
-        [Header("Debug")]
-        [SerializeField] private bool _drawInitialDirectionDebug;
-        [SerializeField] private float _debugLineLength = 3f;
-
-        private float _nextShotTime;
-        private ShotData _lastShotData;
-        private bool _hasLastShotData;
+        [SerializeField] private CannonAimController _aimController;
+        [SerializeField] private CannonStateController _stateController;
 
         private void Awake()
         {
@@ -33,19 +21,19 @@ namespace ImpactRush.Gameplay
                 _targetSelector = GetComponent<TargetSelector>();
             }
 
-            if (_cannonAnimator == null)
+            if (_aimController == null)
             {
-                _cannonAnimator = GetComponent<CannonAnimator>();
+                _aimController = GetComponent<CannonAimController>();
             }
 
-            if (_projectileLauncher == null)
+            if (_stateController == null)
             {
-                _projectileLauncher = GetComponent<ProjectileLauncher>();
+                _stateController = GetComponent<CannonStateController>();
             }
 
             Guard.AgainstNull(_targetSelector, nameof(_targetSelector));
-            Guard.AgainstNull(_cannonAnimator, nameof(_cannonAnimator));
-            Guard.AgainstNull(_projectileLauncher, nameof(_projectileLauncher));
+            Guard.AgainstNull(_aimController, nameof(_aimController));
+            Guard.AgainstNull(_stateController, nameof(_stateController));
         }
 
         private void OnEnable()
@@ -61,48 +49,34 @@ namespace ImpactRush.Gameplay
         private void Start()
         {
             var centerTarget = _targetSelector.GetViewportTarget(new Vector2(0.5f, 0.5f));
-            AimCannonAtTarget(centerTarget);
+            if (GameplayTargetValidator.TryValidateShotTarget(
+                    centerTarget,
+                    _targetSelector.GameplayRectangle,
+                    out var mappedTarget,
+                    out _))
+            {
+                _aimController.SetTargetImmediate(mappedTarget);
+            }
         }
 
         private void HandleTargetSelected(Vector3 target)
         {
-            if (IsGameplayInputBlocked() || Time.time < _nextShotTime || !_projectileLauncher.HasCapacity())
+            if (IsGameplayInputBlocked() || !_stateController.CanAcceptInput())
             {
                 return;
             }
 
-            if (!TryConsumeBall())
+            if (!GameplayTargetValidator.TryValidateShotTarget(
+                    target,
+                    _targetSelector.GameplayRectangle,
+                    out var mappedTarget,
+                    out _))
             {
                 return;
             }
 
-            _cannonAnimator.AimAtTarget(target);
-
-            var direction = (target - _projectileLauncher.SpawnPosition).normalized;
-            var shot = _projectileLauncher.CreateShotFromDirection(direction, target);
-            RememberShot(shot);
-
-            if (_projectileLauncher.TryLaunch(shot))
-            {
-                EventBus.Publish(new PlaySfxEvent(AudioIds.ProjectileFire));
-            }
-
-            _nextShotTime = Time.time + _shotCooldown;
-        }
-
-        private void AimCannonAtTarget(Vector3 target)
-        {
-            _cannonAnimator.AimAtTarget(target);
-
-            var direction = (target - _projectileLauncher.SpawnPosition).normalized;
-            var shot = _projectileLauncher.CreateShotFromDirection(direction, target);
-            RememberShot(shot);
-        }
-
-        private void RememberShot(ShotData shot)
-        {
-            _lastShotData = shot;
-            _hasLastShotData = true;
+            _aimController.SetTarget(mappedTarget);
+            _stateController.BeginShot(mappedTarget);
         }
 
         private static bool IsGameplayInputBlocked()
@@ -114,30 +88,5 @@ namespace ImpactRush.Gameplay
 
             return session.IsPaused || session.IsLevelComplete || session.IsLevelFailed;
         }
-
-        private static bool TryConsumeBall()
-        {
-            if (!ServiceLocator.TryGet<GameSessionManager>(out var session))
-            {
-                return true;
-            }
-
-            return session.TryConsumeBall();
-        }
-
-#if UNITY_EDITOR
-        private void OnDrawGizmos()
-        {
-            if (!_drawInitialDirectionDebug || !_hasLastShotData)
-            {
-                return;
-            }
-
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(
-                _lastShotData.SpawnPosition,
-                _lastShotData.SpawnPosition + (_lastShotData.InitialDirection * _debugLineLength));
-        }
-#endif
     }
 }

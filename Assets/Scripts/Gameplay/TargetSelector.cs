@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using ImpactRush.Core.Managers;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -12,6 +11,8 @@ namespace ImpactRush.Gameplay
     [DisallowMultipleComponent]
     public sealed class TargetSelector : MonoBehaviour
     {
+        private const float BelowPlatformScreenMargin = 12f;
+
         [SerializeField] private Camera _camera;
         [SerializeField] private GameplayRectangle _gameplayRectangle;
         [SerializeField] private AimPlane _aimPlane;
@@ -19,6 +20,7 @@ namespace ImpactRush.Gameplay
         public GameplayRectangle GameplayRectangle => _gameplayRectangle;
 
         public event Action<Vector3> TargetSelected;
+        public event Action<GameplayTargetRejectReason> TargetRejected;
 
         private void Reset()
         {
@@ -56,9 +58,35 @@ namespace ImpactRush.Gameplay
                 return;
             }
 
-            if (TryGetScreenTarget(screenPosition, out var target))
+            if (TryGetScreenTarget(screenPosition, out var rawTarget))
             {
-                TargetSelected?.Invoke(target);
+                if (GameplayTargetValidator.TryValidateShotTarget(
+                        rawTarget,
+                        _gameplayRectangle,
+                        out var validatedTarget,
+                        out var rejectReason))
+                {
+                    TargetSelected?.Invoke(validatedTarget);
+                    return;
+                }
+
+                HandleRejectedTarget(rejectReason);
+                return;
+            }
+
+            if (IsScreenTapBelowPlatform(screenPosition))
+            {
+                HandleRejectedTarget(GameplayTargetRejectReason.BelowPlatform);
+            }
+        }
+
+        private void HandleRejectedTarget(GameplayTargetRejectReason rejectReason)
+        {
+            TargetRejected?.Invoke(rejectReason);
+
+            if (rejectReason == GameplayTargetRejectReason.BelowPlatform)
+            {
+                GameplayHint.ShowBelowPlatform();
             }
         }
 
@@ -120,7 +148,7 @@ namespace ImpactRush.Gameplay
                 pointerId = pointerId
             };
 
-            var results = new List<RaycastResult>(8);
+            var results = new System.Collections.Generic.List<RaycastResult>(8);
             eventSystem.RaycastAll(pointerData, results);
             return results.Count > 0;
         }
@@ -129,7 +157,14 @@ namespace ImpactRush.Gameplay
         {
             if (_camera != null && TryGetScreenTarget(ViewportToScreen(viewport), out var target))
             {
-                return target;
+                if (GameplayTargetValidator.TryValidateShotTarget(
+                        target,
+                        _gameplayRectangle,
+                        out var validatedTarget,
+                        out _))
+                {
+                    return validatedTarget;
+                }
             }
 
             if (_gameplayRectangle != null)
@@ -157,17 +192,35 @@ namespace ImpactRush.Gameplay
                 return true;
             }
 
-            if (_gameplayRectangle != null)
+            if (_gameplayRectangle == null)
             {
-                var plane = new Plane(_gameplayRectangle.transform.forward, _gameplayRectangle.Center);
-                if (plane.Raycast(ray, out var distance))
-                {
-                    target = ray.GetPoint(distance);
-                    return true;
-                }
+                return false;
             }
 
-            return false;
+            var plane = new Plane(_gameplayRectangle.transform.forward, _gameplayRectangle.Center);
+            if (!plane.Raycast(ray, out var distance))
+            {
+                return false;
+            }
+
+            target = ray.GetPoint(distance);
+            return true;
+        }
+
+        private bool IsScreenTapBelowPlatform(Vector2 screenPosition)
+        {
+            var stage = GameplayStage.Instance;
+            if (stage == null || _camera == null)
+            {
+                return false;
+            }
+
+            if (!stage.TryGetPlatformScreenBounds(_camera, out var platformBounds))
+            {
+                return false;
+            }
+
+            return screenPosition.y < platformBounds.yMin - BelowPlatformScreenMargin;
         }
 
         private Vector2 ViewportToScreen(Vector2 viewport)

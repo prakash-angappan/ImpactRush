@@ -89,4 +89,24 @@ namespace ImpactRush.Core.Events
         public string ClipId { get; }
         public bool Loop { get; }
     }
+
+    public readonly struct GameplayHintRequestedEvent : IGameEvent
+    {
+        public GameplayHintRequestedEvent(
+            string message,
+            float duration = 1f,
+            float fadeTime = 0.2f,
+            float fontSize = -1f)
+        {
+            Message = message;
+            Duration = duration;
+            FadeTime = fadeTime;
+            FontSize = fontSize;
+        }
+
+        public string Message { get; }
+        public float Duration { get; }
+        public float FadeTime { get; }
+        public float FontSize { get; }
+    }
 }

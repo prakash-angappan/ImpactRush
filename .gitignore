@@ -59,6 +59,7 @@ crashlytics-build.properties
 
 # Gradle
 .gradle/
+.utmp/
 
 # Android
 *.apk

@@ -1,10 +1,13 @@
-using System.Collections.Generic;
+using ImpactRush.Core.Pooling;
+using ImpactRush.Gameplay.Data;
+using ImpactRush.Gameplay.Impacts;
+using ImpactRush.Utilities;
 using UnityEngine;
 
 namespace ImpactRush.Gameplay
 {
     /// <summary>
-    /// Spawns projectiles and drives them along straight-line ShotData paths.
+    /// Spawns pooled projectiles using <see cref="BallConfig"/> tuning only.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class ProjectileLauncher : MonoBehaviour
@@ -13,122 +16,101 @@ namespace ImpactRush.Gameplay
 
         [SerializeField] private GameObject _projectilePrefab;
         [SerializeField] private Transform _spawnPoint;
-        [Header("Trajectory")]
-        [SerializeField] private float _projectileTravelTime = 0.65f;
-        [SerializeField] private float _maxGameplayDistance = 20f;
-        [SerializeField] private float _minimumArcHeight;
-        [SerializeField] private float _maximumArcHeight = 5f;
-        [Header("Projectile")]
-        [SerializeField] private float _projectileLifetime = 8f;
-        [SerializeField] private float _projectileRadius = 0.25f;
-        [Header("Impact")]
-        [SerializeField] private float _impactForce = 1.5f;
-        [SerializeField] private float _explosionRadius;
-        [SerializeField] private float _explosionForce;
-        [Header("Capacity")]
-        [SerializeField] private int _maxActiveProjectiles = 3;
+        [SerializeField] private bool _preferPool = true;
+        [SerializeField] private BallConfig _ballOverride;
 
-        private readonly List<GameObject> _activeProjectiles = new();
+        private int _activeProjectileCount;
 
+        public int ActiveProjectileCount => _activeProjectileCount;
         public Vector3 SpawnPosition => _spawnPoint != null ? _spawnPoint.position : transform.position;
 
-        public ShotData CreateShot(Vector3 target)
-        {
-            return CreateShotFromDirection((target - SpawnPosition).normalized, target);
-        }
-
-        public ShotData CreateShotFromDirection(Vector3 direction, Vector3? targetOverride = null)
-        {
-            var normalizedDirection = direction.sqrMagnitude > 0.0001f
-                ? direction.normalized
-                : transform.forward;
-            var maxRange = Mathf.Max(0.01f, _maxGameplayDistance);
-            var safeTravelTime = Mathf.Max(0.01f, _projectileTravelTime);
-            var projectileSpeed = maxRange / safeTravelTime;
-            var travelEnd = SpawnPosition + (normalizedDirection * maxRange);
-            var targetPosition = targetOverride ?? travelEnd;
-            var distance = Vector3.Distance(SpawnPosition, targetPosition);
-
-            return new ShotData(
-                SpawnPosition,
-                targetPosition,
-                travelEnd,
-                normalizedDirection,
-                0f,
-                safeTravelTime,
-                distance,
-                Mathf.Clamp01(distance / maxRange),
-                projectileSpeed);
-        }
+        public Transform SpawnTransform => _spawnPoint;
 
         public bool HasCapacity()
         {
-            PurgeDestroyedProjectiles();
-            return _activeProjectiles.Count < _maxActiveProjectiles;
+            return _activeProjectileCount < ResolveMaxActiveProjectiles();
         }
 
-        public bool TryLaunch(ShotData shot)
+        public bool TryLaunch(LaunchRequest request, BallConfig ball, float launchSpeedOverride = -1f)
         {
-            if (!HasCapacity() || _projectilePrefab == null || _spawnPoint == null)
+            ball ??= ResolveBallConfig();
+            if (ball == null || _projectilePrefab == null || _spawnPoint == null)
+            {
+                LogLaunchFailure(ball);
+                return false;
+            }
+
+            if (!HasCapacity())
             {
                 return false;
             }
 
-            var projectile = Instantiate(
-                _projectilePrefab,
-                shot.SpawnPosition,
-                Quaternion.LookRotation(shot.InitialDirection));
+            var liveRequest = CannonAiming.BuildLaunchRequest(request.TargetPosition, _spawnPoint);
+            var direction = liveRequest.Direction;
+            var rotation = direction.sqrMagnitude > 0.0001f
+                ? Quaternion.LookRotation(direction, Vector3.up)
+                : _spawnPoint.rotation;
+            var launchSpeed = launchSpeedOverride > 0f
+                ? launchSpeedOverride
+                : ball.InitialSpeed;
 
-            DisablePhysicsSimulation(projectile);
-            ApplyProjectileSize(projectile.transform, projectile.GetComponent<SphereCollider>());
-
-            var follower = projectile.GetComponent<ProjectileFollower>();
-            if (follower == null)
+            var projectile = RentProjectile(liveRequest.SpawnPosition, rotation);
+            if (projectile == null)
             {
-                follower = projectile.AddComponent<ProjectileFollower>();
+                return false;
             }
 
-            follower.Initialize(
-                shot,
-                _projectileRadius,
-                _maxGameplayDistance,
-                new ImpactSettings
-                {
-                    ImpactForce = _impactForce,
-                    ExplosionRadius = _explosionRadius,
-                    ExplosionForce = _explosionForce,
-                },
-                () => _activeProjectiles.Remove(projectile));
+            var controller = projectile.GetComponent<ProjectileController>();
+            if (controller == null)
+            {
+                controller = projectile.AddComponent<ProjectileController>();
+            }
 
-            _activeProjectiles.Add(projectile);
-            Destroy(projectile, _projectileLifetime);
+            var impactSettings = ImpactSettingsBuilder.Build(ball);
+            controller.Launch(ball, liveRequest, impactSettings, OnProjectileFinished, launchSpeed);
+            _activeProjectileCount++;
             return true;
         }
 
-        private static void DisablePhysicsSimulation(GameObject projectile)
+        private BallConfig ResolveBallConfig()
         {
-            var rigidbodies = projectile.GetComponentsInChildren<Rigidbody>(true);
-            for (var i = 0; i < rigidbodies.Length; i++)
+            if (_ballOverride != null)
             {
-                Destroy(rigidbodies[i]);
+                return _ballOverride;
             }
 
-            var collider = projectile.GetComponent<Collider>();
-            if (collider != null)
-            {
-                collider.enabled = false;
-            }
+            return GameplayConfigProvider.DefaultBall;
         }
 
-        private void ApplyProjectileSize(Transform projectileTransform, SphereCollider collider)
+        private int ResolveMaxActiveProjectiles()
         {
-            var scale = _projectileRadius / UnitSphereRadius;
-            projectileTransform.localScale = Vector3.one * scale;
-
-            if (collider != null)
+            var physics = GameplayConfigProvider.ProjectilePhysics;
+            if (physics != null)
             {
-                collider.radius = UnitSphereRadius;
+                return physics.MaxActiveProjectiles;
             }
+
+            var projectile = GameplayConfigProvider.Projectile;
+            return projectile != null ? projectile.MaxActive : 3;
+        }
+
+        private GameObject RentProjectile(Vector3 position, Quaternion rotation)
+        {
+            if (_preferPool && PoolManager.Instance != null)
+            {
+                var pooled = PoolManager.Instance.Rent(PoolIds.Projectile, position, rotation);
+                if (pooled != null)
+                {
+                    return pooled;
+                }
+            }
+
+            return Instantiate(_projectilePrefab, position, rotation);
+        }
+
+        private void OnProjectileFinished()
+        {
+            _activeProjectileCount = Mathf.Max(0, _activeProjectileCount - 1);
         }
 
         private void Reset()
@@ -136,15 +118,16 @@ namespace ImpactRush.Gameplay
             _spawnPoint = FindSpawnPoint();
         }
 
-        private void PurgeDestroyedProjectiles()
+        private static void LogLaunchFailure(BallConfig ball)
         {
-            for (var i = _activeProjectiles.Count - 1; i >= 0; i--)
+            if (ball != null)
             {
-                if (_activeProjectiles[i] == null)
-                {
-                    _activeProjectiles.RemoveAt(i);
-                }
+                return;
             }
+
+            Debug.LogWarning(
+                "ProjectileLauncher: Cannot launch because BallConfig is missing. "
+                + "Assign GameplayConfig on LevelRoot or set a Ball Override on ProjectileLauncher.");
         }
 
         private Transform FindSpawnPoint()
@@ -161,30 +144,5 @@ namespace ImpactRush.Gameplay
 
             return null;
         }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (_projectileTravelTime < 0.01f)
-            {
-                _projectileTravelTime = 0.01f;
-            }
-
-            if (_maxGameplayDistance < 0.01f)
-            {
-                _maxGameplayDistance = 0.01f;
-            }
-
-            if (_minimumArcHeight < 0f)
-            {
-                _minimumArcHeight = 0f;
-            }
-
-            if (_maximumArcHeight < _minimumArcHeight)
-            {
-                _maximumArcHeight = _minimumArcHeight;
-            }
-        }
-#endif
     }
 }
