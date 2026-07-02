@@ -89,6 +89,7 @@ namespace ImpactRush.Gameplay
 
         private void EnsureBootstrapSystems()
         {
+            Core.Pooling.PoolManager.EnsureInstance();
             EnsureComponent<GameplayCollisionSetup>();
             EnsureComponent<PlatformPhysicsSetup>();
 
