@@ -90,6 +90,7 @@ namespace ImpactRush.Gameplay
         private void EnsureBootstrapSystems()
         {
             EnsureComponent<GameplayCollisionSetup>();
+            EnsureComponent<PlatformPhysicsSetup>();
 
             var camera = Camera.main;
             if (camera != null && camera.GetComponent<GameplayCameraShake>() == null)

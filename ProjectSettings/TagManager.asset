@@ -19,6 +19,7 @@ TagManager:
   - Projectile
   - GameplayBounds
   - Environment
+  - GroundedProjectile
   - 
   - 
   - 

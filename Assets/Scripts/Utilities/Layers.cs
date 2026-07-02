@@ -14,6 +14,7 @@ namespace ImpactRush.Utilities
         public const string Ground = "Ground";
         public const string Platform = "Platform";
         public const string Projectile = "Projectile";
+        public const string GroundedProjectile = "GroundedProjectile";
         public const string GameplayBounds = "GameplayBounds";
         public const string Environment = "Environment";
         public const string TransparentFx = "TransparentFX";

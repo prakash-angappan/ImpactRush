@@ -111,6 +111,11 @@ namespace ImpactRush.Gameplay
                 }
 
                 cleanup.Configure(cleanupDelay, autoDestroyHeight);
+
+                if (targetObject.GetComponent<StackPieceGroundSettling>() == null)
+                {
+                    targetObject.AddComponent<StackPieceGroundSettling>();
+                }
             }
         }
 
