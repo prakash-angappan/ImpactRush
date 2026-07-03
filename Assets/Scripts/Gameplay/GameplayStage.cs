@@ -11,8 +11,6 @@ namespace ImpactRush.Gameplay
     [DefaultExecutionOrder(-300)]
     public sealed class GameplayStage : MonoBehaviour
     {
-        private const float AimPlaneDepth = 0.08f;
-        private const float AimPlaneZOffset = 0.12f;
         private const float DefaultPlaneSize = 10f;
 
         public static GameplayStage Instance { get; private set; }
@@ -45,6 +43,11 @@ namespace ImpactRush.Gameplay
         {
             Instance = this;
             EnsureGameplayConfigRegistered();
+
+            // Apply the active theme (layout geometry, environment, lighting, ...) before the level is
+            // built so target scale / platform placement are already correct. No-op when no theme is
+            // assigned, preserving the authored scene layout.
+            ThemeApplier.Apply(_gameplayConfig != null ? _gameplayConfig.Theme : null);
 
             EnsureBootstrapSystems();
             ApplyLayout();
@@ -93,6 +96,10 @@ namespace ImpactRush.Gameplay
             EnsureComponent<GameplayCollisionSetup>();
             EnsureComponent<PlatformPhysicsSetup>();
 
+            // AimManager is the single source of truth for aiming; ensure it exists before layout so
+            // it can position the aim plane from the resolved gameplay area (FEATURE-080).
+            EnsureComponent<AimManager>();
+
             var camera = Camera.main;
             if (camera != null && camera.GetComponent<GameplayCameraShake>() == null)
             {
@@ -117,6 +124,8 @@ namespace ImpactRush.Gameplay
             {
                 GameplayConfigProvider.Clear();
             }
+
+            Data.Theme.ThemeConfigProvider.Clear();
         }
 
         private void ApplyLayout()
@@ -128,12 +137,13 @@ namespace ImpactRush.Gameplay
 
             ConfigureGameplayArea();
 
-            var center = _gameplayRectangle.Center;
-            var aimPosition = center + Vector3.forward * AimPlaneZOffset;
-            _aimPlane.transform.SetPositionAndRotation(aimPosition, _gameplayRectangle.transform.rotation);
-            _aimPlane.ConfigureSize(
-                Vector3.zero,
-                new Vector3(_gameplayRectangle.Width, _gameplayRectangle.Height, AimPlaneDepth));
+            // Aim-plane placement + height recomputation are owned by AimManager (single source of
+            // truth). It reads the freshly-configured gameplay rectangle (derived from the current
+            // platform height) so raising the platform can never leave the aim plane stale (F-080).
+            var aimManager = AimManager.Instance != null
+                ? AimManager.Instance
+                : EnsureComponent<AimManager>();
+            aimManager.ConfigureAimPlane();
         }
 
         private void ConfigureGameplayArea()
@@ -154,7 +164,29 @@ namespace ImpactRush.Gameplay
             var areaWidth = Mathf.Max(configuredWidth, platformBounds.size.x);
 
             _gameplayRectangle.ConfigureHorizontalWorldExtent(areaWidth);
-            _gameplayRectangle.ConfigureVerticalWorldExtent(platformTop, platformTop + areaHeight);
+
+            // Recalculate the aim plane's vertical extent from the CURRENT platform height. Prefer the
+            // authoritative config value over the collider bounds (which may be a physics frame behind
+            // after ThemeApplier repositions the platform), so raising the platform never leaves the
+            // aim plane on a stale height (FEATURE-079).
+            var layout = Data.Theme.ThemeConfigProvider.Layout;
+            if (layout != null && layout.PlatformHeight > 0.001f)
+            {
+                platformTop = layout.PlatformHeight;
+            }
+
+            var bottom = platformTop;
+            var top = platformTop + areaHeight;
+
+            // Optional explicit override: centre the aim plane on a fixed world Y.
+            if (layout != null && layout.AimPlaneHeight > 0.001f)
+            {
+                var half = areaHeight * 0.5f;
+                bottom = layout.AimPlaneHeight - half;
+                top = layout.AimPlaneHeight + half;
+            }
+
+            _gameplayRectangle.ConfigureVerticalWorldExtent(bottom, top);
         }
 
         public Bounds ResolvePlatformBounds()

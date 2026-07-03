@@ -126,6 +126,22 @@ namespace ImpactRush.Gameplay
 
             var onPlatform = ResolvePlatformObjectCount();
 
+            if (onPlatform == 0)
+
+            {
+
+                // Authoritative recount from actual piece positions before declaring the platform clear.
+
+                // Guards against any stale trigger-event state so the level never completes while pieces
+
+                // are still resting on the platform.
+
+                _platformTrackingVolume?.ResyncOccupants();
+
+                onPlatform = ResolvePlatformObjectCount();
+
+            }
+
             if (onPlatform > 0)
 
             {

@@ -57,6 +57,35 @@ namespace ImpactRush.Core.Events
     {
     }
 
+    /// <summary>Raised when a projectile is launched. Lets systems (audio, analytics, tutorials)
+    /// react to firing without referencing the cannon.</summary>
+    public readonly struct ProjectileSpawnedEvent : IGameEvent
+    {
+        public ProjectileSpawnedEvent(int activeProjectiles)
+        {
+            ActiveProjectiles = activeProjectiles;
+        }
+
+        public int ActiveProjectiles { get; }
+    }
+
+    /// <summary>Raised when a projectile completes its lifecycle and returns to the pool.</summary>
+    public readonly struct ProjectileReturnedToPoolEvent : IGameEvent
+    {
+        public ProjectileReturnedToPoolEvent(int activeProjectiles)
+        {
+            ActiveProjectiles = activeProjectiles;
+        }
+
+        public int ActiveProjectiles { get; }
+    }
+
+    /// <summary>Raised when a breakable object is destroyed, so managers can update platform/level
+    /// state without direct references to the breakable.</summary>
+    public readonly struct BreakableDestroyedEvent : IGameEvent
+    {
+    }
+
     public readonly struct BallsRemainingChangedEvent : IGameEvent
     {
         public BallsRemainingChangedEvent(int ballsRemaining)

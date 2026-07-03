@@ -1,3 +1,5 @@
+using ImpactRush.Core.Events;
+using ImpactRush.Core.Managers;
 using ImpactRush.Core.Pooling;
 using ImpactRush.Gameplay.Data;
 using ImpactRush.Gameplay.Impacts;
@@ -40,11 +42,8 @@ namespace ImpactRush.Gameplay
                 return false;
             }
 
-            if (!HasCapacity())
-            {
-                return false;
-            }
-
+            // NOTE: firing is intentionally NOT gated by the active-projectile count. Cadence is
+            // controlled by the cannon fire-rate cooldown; the pool auto-expands to cover concurrency.
             var liveRequest = CannonAiming.BuildLaunchRequest(request.TargetPosition, _spawnPoint);
             var direction = liveRequest.Direction;
             var rotation = direction.sqrMagnitude > 0.0001f
@@ -60,15 +59,17 @@ namespace ImpactRush.Gameplay
                 return false;
             }
 
-            var controller = projectile.GetComponent<ProjectileController>();
+            var controller = projectile.GetComponent<ProjectileBase>();
             if (controller == null)
             {
-                controller = projectile.AddComponent<ProjectileController>();
+                controller = projectile.AddComponent<StandardBall>();
             }
 
             var impactSettings = ImpactSettingsBuilder.Build(ball);
             controller.Launch(ball, liveRequest, impactSettings, OnProjectileFinished, launchSpeed);
+            GameplayDebugSettings.RecordProjectileSpawn(liveRequest.SpawnPosition, liveRequest.TargetPosition);
             _activeProjectileCount++;
+            EventBus.Publish(new ProjectileSpawnedEvent(_activeProjectileCount));
             return true;
         }
 
@@ -111,6 +112,7 @@ namespace ImpactRush.Gameplay
         private void OnProjectileFinished()
         {
             _activeProjectileCount = Mathf.Max(0, _activeProjectileCount - 1);
+            EventBus.Publish(new ProjectileReturnedToPoolEvent(_activeProjectileCount));
         }
 
         private void Reset()
