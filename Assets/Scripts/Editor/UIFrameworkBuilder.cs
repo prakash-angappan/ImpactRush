@@ -17,6 +17,7 @@ namespace ImpactRush.Editor
     public static class UIFrameworkBuilder
     {
         private const string UiRootPrefabPath = "Assets/Resources/UI/UIRoot.prefab";
+        private const string UiButtonPrefabPath = "Assets/Prefabs/UI/UIButton.prefab";
         private const string AudioLibraryPath = "Assets/ScriptableObjects/AudioLibrary.asset";
         private const string AudioFolderPath = "Assets/Resources/Audio";
         private const string BootstrapScenePath = "Assets/Scenes/Bootstrap.unity";
@@ -27,9 +28,12 @@ namespace ImpactRush.Editor
         {
             EnsureFolders();
             EnsurePlaceholderSprites();
+            UISpriteSheetSlicer.EnsureButtonSpritesSliced();
+            var theme = LoadThemeAssets();
             var clips = CreateOrLoadPlaceholderClips();
             var library = CreateOrUpdateAudioLibrary(clips);
-            var uiRootPrefab = BuildUIRootPrefab(library);
+            var uiRootPrefab = BuildUIRootPrefab(library, theme);
+            BuildReusableButtonPrefab(theme);
             WireBootstrapScene(uiRootPrefab);
             WireGameplayScene();
             AssetDatabase.SaveAssets();
@@ -142,12 +146,89 @@ namespace ImpactRush.Editor
             };
         }
 
-        private static GameObject BuildUIRootPrefab(AudioLibrary library)
+        private static GameObject BuildUIRootPrefab(AudioLibrary library, UIThemeAssets theme)
         {
-            var root = UIConstruction.BuildUIRootHierarchy(library);
+            var root = UIConstruction.BuildUIRootHierarchy(library, theme);
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, UiRootPrefabPath);
             Object.DestroyImmediate(root);
             return prefab;
+        }
+
+        private static void BuildReusableButtonPrefab(UIThemeAssets theme)
+        {
+            Directory.CreateDirectory(Path.GetFullPath("Assets/Prefabs/UI"));
+            var button = UIConstruction.BuildButtonTemplate(theme);
+            PrefabUtility.SaveAsPrefabAsset(button, UiButtonPrefabPath);
+            Object.DestroyImmediate(button);
+        }
+
+        private static UIThemeAssets LoadThemeAssets()
+        {
+            var sprites = LoadSheetSprites();
+            var theme = new UIThemeAssets
+            {
+                MainMenuBackground = LoadMainMenuBackground(),
+                PlayIcon = FindSprite(sprites, UISpriteSheetSlicer.PlayNormalName),
+                SettingsIcon = FindSprite(sprites, UISpriteSheetSlicer.SettingsNormalName),
+                ExitIcon = FindSprite(sprites, UISpriteSheetSlicer.ExitNormalName),
+                TrophyIcon = FindSprite(sprites, UISpriteSheetSlicer.TrophyNormalName),
+                VolumeIcon = FindSprite(sprites, UISpriteSheetSlicer.VolumeNormalName),
+                CloseIcon = FindSprite(sprites, UISpriteSheetSlicer.CloseNormalName),
+            };
+
+            var normal = FindSprite(sprites, UISpriteSheetSlicer.ButtonNormalName);
+            var hover = FindSprite(sprites, UISpriteSheetSlicer.ButtonHoverName);
+            var pressed = FindSprite(sprites, UISpriteSheetSlicer.ButtonPressedName);
+            if (normal != null && hover != null && pressed != null)
+            {
+                theme.Button = new MenuButtonSpriteSet
+                {
+                    Normal = normal,
+                    Hover = hover,
+                    Pressed = pressed,
+                };
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "UIFrameworkBuilder: button sprites not found in UISpriteSheet; " +
+                    "buttons will fall back to flat colour styling.");
+            }
+
+            return theme;
+        }
+
+        private static Object[] LoadSheetSprites()
+        {
+            return AssetDatabase.LoadAllAssetsAtPath(UISpriteSheetSlicer.SpriteSheetPath);
+        }
+
+        private static Sprite FindSprite(Object[] assets, string spriteName)
+        {
+            foreach (var asset in assets)
+            {
+                if (asset is Sprite sprite && sprite.name == spriteName)
+                {
+                    return sprite;
+                }
+            }
+
+            Debug.LogWarning($"UIFrameworkBuilder: sprite '{spriteName}' not found in UISpriteSheet.");
+            return null;
+        }
+
+        private static Sprite LoadMainMenuBackground()
+        {
+            const string path = "Assets/Art/UI/bg-mainmenu.png";
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite == null)
+            {
+                Debug.LogWarning(
+                    $"UIFrameworkBuilder: Main Menu background sprite not found at '{path}'; " +
+                    "falling back to the flat colour background.");
+            }
+
+            return sprite;
         }
 
         private static void WireBootstrapScene(GameObject uiRootPrefab)
@@ -167,7 +248,7 @@ namespace ImpactRush.Editor
             }
 
             SetSerializedReference(gameManager, "_uiRootPrefab", uiRootPrefab);
-            SetSerializedReference(bootstrap, "_initialScene", Core.GameScene.MainMenu);
+            SetSerializedReference(bootstrap, "_initialScene", Core.GameScene.Loading);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
         }

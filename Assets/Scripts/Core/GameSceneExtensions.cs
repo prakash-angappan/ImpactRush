@@ -13,6 +13,7 @@ namespace ImpactRush.Core
             return scene switch
             {
                 GameScene.Bootstrap => "Bootstrap",
+                GameScene.Loading => "Loading",
                 GameScene.MainMenu => "MainMenu",
                 GameScene.Gameplay => "Gameplay",
                 _ => throw new ArgumentOutOfRangeException(nameof(scene), scene, "Unknown scene identifier.")

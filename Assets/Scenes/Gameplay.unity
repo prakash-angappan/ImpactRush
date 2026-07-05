@@ -1304,6 +1304,7 @@ MonoBehaviour:
   _camera: {fileID: 330585545}
   _gameplayRectangle: {fileID: 2000000405}
   _aimPlane: {fileID: 2000000523}
+  _aimManager: {fileID: 0}
 --- !u!114 &2000000303
 MonoBehaviour:
   m_ObjectHideFlags: 0

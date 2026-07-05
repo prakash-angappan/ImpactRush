@@ -7,6 +7,7 @@ namespace ImpactRush.Core
     {
         Bootstrap = 0,
         MainMenu = 1,
-        Gameplay = 2
+        Gameplay = 2,
+        Loading = 3
     }
 }

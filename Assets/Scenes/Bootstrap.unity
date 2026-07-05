@@ -330,7 +330,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1a2b3c4d5e6478990abcdef01234510, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ImpactRush.Core::ImpactRush.Core.Bootstrap.GameBootstrap
-  _initialScene: 1
+  _initialScene: 3
 --- !u!114 &1000000006
 MonoBehaviour:
   m_ObjectHideFlags: 0

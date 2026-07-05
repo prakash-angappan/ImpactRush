@@ -15,6 +15,7 @@ namespace ImpactRush.Editor
         private static readonly string[] RequiredScenes =
         {
             $"Assets/Scenes/{GameScene.Bootstrap.ToSceneName()}.unity",
+            $"Assets/Scenes/{GameScene.Loading.ToSceneName()}.unity",
             $"Assets/Scenes/{GameScene.MainMenu.ToSceneName()}.unity",
             $"Assets/Scenes/{GameScene.Gameplay.ToSceneName()}.unity"
         };
