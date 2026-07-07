@@ -96,6 +96,18 @@ namespace ImpactRush.Core.Events
         public int BallsRemaining { get; }
     }
 
+    /// <summary>Raised when the player selects a different projectile type in the carousel. Carries the
+    /// library index only, keeping the Core event free of gameplay/UI type coupling.</summary>
+    public readonly struct BallSelectionChangedEvent : IGameEvent
+    {
+        public BallSelectionChangedEvent(int selectedIndex)
+        {
+            SelectedIndex = selectedIndex;
+        }
+
+        public int SelectedIndex { get; }
+    }
+
 
     public readonly struct PlaySfxEvent : IGameEvent
     {

@@ -1,3 +1,4 @@
+using ImpactRush.Core.Balls;
 using ImpactRush.Core.Events;
 using ImpactRush.Core.Managers;
 using ImpactRush.Core.Pooling;
@@ -33,7 +34,11 @@ namespace ImpactRush.Gameplay
             return _activeProjectileCount < ResolveMaxActiveProjectiles();
         }
 
-        public bool TryLaunch(LaunchRequest request, BallConfig ball, float launchSpeedOverride = -1f)
+        public bool TryLaunch(
+            LaunchRequest request,
+            BallConfig ball,
+            float launchSpeedOverride = -1f,
+            BallTypeData ballType = null)
         {
             ball ??= ResolveBallConfig();
             if (ball == null || _projectilePrefab == null || _spawnPoint == null)
@@ -53,7 +58,7 @@ namespace ImpactRush.Gameplay
                 ? launchSpeedOverride
                 : ball.InitialSpeed;
 
-            var projectile = RentProjectile(liveRequest.SpawnPosition, rotation);
+            var projectile = RentProjectile(liveRequest.SpawnPosition, rotation, ballType);
             if (projectile == null)
             {
                 return false;
@@ -65,8 +70,8 @@ namespace ImpactRush.Gameplay
                 controller = projectile.AddComponent<StandardBall>();
             }
 
-            var impactSettings = ImpactSettingsBuilder.Build(ball);
-            controller.Launch(ball, liveRequest, impactSettings, OnProjectileFinished, launchSpeed);
+            var impactSettings = ImpactSettingsBuilder.Build(ball, ballType);
+            controller.Launch(ball, liveRequest, impactSettings, OnProjectileFinished, launchSpeed, ballType);
             GameplayDebugSettings.RecordProjectileSpawn(liveRequest.SpawnPosition, liveRequest.TargetPosition);
             _activeProjectileCount++;
             EventBus.Publish(new ProjectileSpawnedEvent(_activeProjectileCount));
@@ -95,18 +100,25 @@ namespace ImpactRush.Gameplay
             return projectile != null ? projectile.MaxActive : 3;
         }
 
-        private GameObject RentProjectile(Vector3 position, Quaternion rotation)
+        private GameObject RentProjectile(Vector3 position, Quaternion rotation, BallTypeData ballType)
         {
             if (_preferPool && PoolManager.Instance != null)
             {
-                var pooled = PoolManager.Instance.Rent(PoolIds.Projectile, position, rotation);
+                var poolId = ProjectileManager.Instance != null
+                    ? ProjectileManager.Instance.ResolvePoolId(ballType)
+                    : PoolIds.Projectile;
+
+                var pooled = PoolManager.Instance.Rent(poolId, position, rotation);
                 if (pooled != null)
                 {
                     return pooled;
                 }
             }
 
-            return Instantiate(_projectilePrefab, position, rotation);
+            var prefab = ballType != null && ballType.ProjectilePrefab != null
+                ? ballType.ProjectilePrefab
+                : _projectilePrefab;
+            return Instantiate(prefab, position, rotation);
         }
 
         private void OnProjectileFinished()

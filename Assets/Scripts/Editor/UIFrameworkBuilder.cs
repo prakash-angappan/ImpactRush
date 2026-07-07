@@ -18,6 +18,7 @@ namespace ImpactRush.Editor
     {
         private const string UiRootPrefabPath = "Assets/Resources/UI/UIRoot.prefab";
         private const string UiButtonPrefabPath = "Assets/Prefabs/UI/UIButton.prefab";
+        private const string DialogBasePrefabPath = "Assets/Prefabs/UI/DialogBase.prefab";
         private const string AudioLibraryPath = "Assets/ScriptableObjects/AudioLibrary.asset";
         private const string AudioFolderPath = "Assets/Resources/Audio";
         private const string BootstrapScenePath = "Assets/Scenes/Bootstrap.unity";
@@ -29,11 +30,13 @@ namespace ImpactRush.Editor
             EnsureFolders();
             EnsurePlaceholderSprites();
             UISpriteSheetSlicer.EnsureButtonSpritesSliced();
+            DialogBackgroundSlicer.EnsureSliced();
             var theme = LoadThemeAssets();
             var clips = CreateOrLoadPlaceholderClips();
             var library = CreateOrUpdateAudioLibrary(clips);
             var uiRootPrefab = BuildUIRootPrefab(library, theme);
             BuildReusableButtonPrefab(theme);
+            BuildReusableDialogPrefab(theme);
             WireBootstrapScene(uiRootPrefab);
             WireGameplayScene();
             AssetDatabase.SaveAssets();
@@ -162,12 +165,21 @@ namespace ImpactRush.Editor
             Object.DestroyImmediate(button);
         }
 
+        private static void BuildReusableDialogPrefab(UIThemeAssets theme)
+        {
+            Directory.CreateDirectory(Path.GetFullPath("Assets/Prefabs/UI"));
+            var dialog = UIConstruction.BuildDialogTemplate(theme);
+            PrefabUtility.SaveAsPrefabAsset(dialog, DialogBasePrefabPath);
+            Object.DestroyImmediate(dialog);
+        }
+
         private static UIThemeAssets LoadThemeAssets()
         {
             var sprites = LoadSheetSprites();
             var theme = new UIThemeAssets
             {
                 MainMenuBackground = LoadMainMenuBackground(),
+                DialogBackground = DialogBackgroundSlicer.LoadSprite(),
                 PlayIcon = FindSprite(sprites, UISpriteSheetSlicer.PlayNormalName),
                 SettingsIcon = FindSprite(sprites, UISpriteSheetSlicer.SettingsNormalName),
                 ExitIcon = FindSprite(sprites, UISpriteSheetSlicer.ExitNormalName),
