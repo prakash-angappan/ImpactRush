@@ -1,3 +1,4 @@
+using ImpactRush.Core.DevConsole;
 using ImpactRush.Core.Events;
 using ImpactRush.Core.Interfaces;
 using UnityEngine;
@@ -75,6 +76,40 @@ namespace ImpactRush.Core.Managers
             EventBus.Publish(new SceneTransitionRequestedEvent(GameScene.Gameplay, showLoadingPopup: true));
         }
 
+        public void GoToPreviousLevel()
+        {
+            if (CurrentLevel <= 1)
+            {
+                return;
+            }
+
+            GoToLevel(CurrentLevel - 1);
+        }
+
+        public void GoToLevel(int levelNumber)
+        {
+            ResetRunState();
+            CurrentLevel = Mathf.Max(1, levelNumber);
+            LevelGenerationSeed = CreateSeedForLevel(CurrentLevel);
+            EventBus.Publish(new SceneTransitionRequestedEvent(GameScene.Gameplay, showLoadingPopup: true));
+        }
+
+        public void SetRandomSeed(int seed)
+        {
+            LevelGenerationSeed = seed;
+        }
+
+        /// <summary>
+        /// Updates session level state without requesting a scene transition. Used by the developer
+        /// sandbox only — production flow continues to use <see cref="GoToLevel"/>.
+        /// </summary>
+        public void SetLevelState(int levelNumber, int? seed = null)
+        {
+            ResetRunState();
+            CurrentLevel = Mathf.Max(1, levelNumber);
+            LevelGenerationSeed = seed ?? CreateSeedForLevel(CurrentLevel);
+        }
+
         public void LoadMainMenu()
         {
             ResetRunState();
@@ -117,7 +152,17 @@ namespace ImpactRush.Core.Managers
 
         public bool TryConsumeBall()
         {
-            if (IsPaused || IsLevelComplete || IsLevelFailed || BallsRemaining <= 0)
+            if (IsPaused || IsLevelComplete || IsLevelFailed)
+            {
+                return false;
+            }
+
+            if (DebugTuning.InfiniteBalls)
+            {
+                return true;
+            }
+
+            if (BallsRemaining <= 0)
             {
                 return false;
             }

@@ -99,6 +99,8 @@ namespace ImpactRush.Gameplay
             // AimManager is the single source of truth for aiming; ensure it exists before layout so
             // it can position the aim plane from the resolved gameplay area (FEATURE-080).
             EnsureComponent<AimManager>();
+            EnsureComponent<Debugging.DebugGameplayBridge>();
+            EnsureComponent<Debugging.DebugGizmoDrawer>();
 
             var camera = Camera.main;
             if (camera != null && camera.GetComponent<GameplayCameraShake>() == null)

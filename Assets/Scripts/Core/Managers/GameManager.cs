@@ -26,10 +26,19 @@ namespace ImpactRush.Core.Managers
 
             DontDestroyOnLoad(gameObject);
             EnsureUIRoot();
+            EnsureDebugManager();
             ApplyApplicationSettings();
             RegisterServices();
             InitializeServices();
             RequestInitialSceneTransition();
+        }
+
+        private void EnsureDebugManager()
+        {
+            if (GetComponent<ImpactRush.Core.DevConsole.DebugManager>() == null)
+            {
+                gameObject.AddComponent<ImpactRush.Core.DevConsole.DebugManager>();
+            }
         }
 
         private void EnsureUIRoot()

@@ -285,6 +285,11 @@ namespace ImpactRush.Editor
 
             SetSerializedReference(monitor, "_platform", platform);
             SetSerializedReference(monitor, "_targetRoot", targetStack);
+            SetSerializedReference(
+                monitor,
+                "_defaultPrimaryObjective",
+                AssetDatabase.LoadAssetAtPath<Core.Data.ObjectiveData>(
+                    "Assets/Data/Objectives/DestroyAllObjects.asset"));
 
             if (targetStack != null && targetStack.GetComponent<LevelBuilder>() == null)
             {

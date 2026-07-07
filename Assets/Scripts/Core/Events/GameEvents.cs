@@ -109,6 +109,31 @@ namespace ImpactRush.Core.Events
     }
 
 
+    /// <summary>Raised when a status effect is applied to an object. Lets session/analytics/UI react
+    /// without referencing the status runtime or the affected object.</summary>
+    public readonly struct StatusEffectAppliedEvent : IGameEvent
+    {
+        public StatusEffectAppliedEvent(string statusId)
+        {
+            StatusId = statusId;
+        }
+
+        public string StatusId { get; }
+    }
+
+    /// <summary>Raised when a status effect is removed or expires from an object.</summary>
+    public readonly struct StatusEffectRemovedEvent : IGameEvent
+    {
+        public StatusEffectRemovedEvent(string statusId, bool expired)
+        {
+            StatusId = statusId;
+            Expired = expired;
+        }
+
+        public string StatusId { get; }
+        public bool Expired { get; }
+    }
+
     public readonly struct PlaySfxEvent : IGameEvent
     {
         public PlaySfxEvent(string clipId)

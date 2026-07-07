@@ -34,6 +34,13 @@ namespace ImpactRush.Audio
                 AudioIds.ProjectileFire => _projectileFire,
                 AudioIds.Impact => _impact,
                 AudioIds.FragmentImpact => _impact,
+                // Placeholder: reuse the impact clip until a dedicated explosion clip is authored.
+                AudioIds.Explosion => _impact,
+                // Placeholder: reuse the impact clip for fire ignition/loop/extinguish until dedicated
+                // fire clips are authored.
+                AudioIds.FireIgnite => _impact,
+                AudioIds.FireLoop => _impact,
+                AudioIds.FireExtinguish => _impact,
                 AudioIds.Victory => _victory,
                 AudioIds.PopupOpen => _popupOpen,
                 AudioIds.PopupClose => _popupClose,
