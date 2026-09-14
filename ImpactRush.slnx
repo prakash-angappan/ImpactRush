@@ -1,0 +1,10 @@
+﻿<Solution>
+  <Project Path="ImpactRush.Utilities.csproj" />
+  <Project Path="ImpactRush.Core.csproj" />
+  <Project Path="ImpactRush.Editor.csproj" />
+  <Project Path="ImpactRush.Gameplay.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="ImpactRush.UI.csproj" />
+  <Project Path="ImpactRush.Physics.csproj" />
+</Solution>
